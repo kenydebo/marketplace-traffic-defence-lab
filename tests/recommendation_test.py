@@ -1,5 +1,6 @@
 """Evidence integrity and meaningful recommender safety checks."""
 import importlib.util
+import json
 from pathlib import Path
 import unittest
 
@@ -33,6 +34,15 @@ class RecommendationTests(unittest.TestCase):
         result = module.replay(events, 4, 1)
         self.assertEqual(result['legitimate_allowed'], 2)
         self.assertEqual(result['legitimate_rejected'], 1)
+
+    def test_shared_network_holdout_withholds_login_proposal(self):
+        events, digest = module.load_events(ROOT/'traffic/scenarios.jsonl')
+        policies = json.loads((ROOT/'policies/endpoints.json').read_text())
+        result = module.build(events, policies, digest)
+        login = next(p for p in result['proposals'] if p['route'] == 'login')
+        self.assertLessEqual(login['selected']['legitimate_rejection_rate'], .01)
+        self.assertGreater(login['holdout_result']['legitimate_rejection_rate'], .01)
+        self.assertEqual(login['decision'], 'insufficient_evidence')
 
 if __name__ == '__main__':
     unittest.main()
