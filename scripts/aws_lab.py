@@ -64,6 +64,8 @@ def prepare():
         raise RuntimeError('CloudFront managed prefix list unavailable')
     save({'account': expected, 'stack': 'marketplace-traffic-lab-'+run_id, 'bootstrap': 'marketplace-traffic-image-'+run_id,
         'source': source, 'zones': zones[:2], 'prefix': lists[0]['PrefixListId'], 'started': time.time(), 'created': []})
+    (ROOT/'site/data/aws.json').write_text(json.dumps({'evidence_type': 'aws_deployment_in_progress', 'checks': [],
+        'started_at': datetime.datetime.now(datetime.timezone.utc).isoformat(), 'cleanup_verified': False}, indent=2)+'\n')
     print('Authorized lab identity verified. Network settings saved privately.', flush=True)
 
 def output(stack):

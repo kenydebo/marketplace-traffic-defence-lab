@@ -31,6 +31,7 @@ jobs:
           python analysis/recommend.py
           python infra/generate.py
           python tests/recommendation_test.py
+          rm -f site/data/aws.json
       - name: Verify disposable account and prepare run inventory
         run: python scripts/aws_lab.py prepare
       - name: Build immutable application image
