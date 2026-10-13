@@ -1,0 +1,32 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Marketplace Traffic Defence Lab: disposable image repository.",
+  "Resources": {
+    "Repository": {
+      "Type": "AWS::ECR::Repository",
+      "Properties": {
+        "ImageTagMutability": "IMMUTABLE",
+        "ImageScanningConfiguration": {
+          "ScanOnPush": true
+        },
+        "EmptyOnDelete": true,
+        "Tags": [
+          {
+            "Key": "Project",
+            "Value": "marketplace-traffic-defence-lab"
+          }
+        ]
+      }
+    }
+  },
+  "Outputs": {
+    "RepositoryUri": {
+      "Value": {
+        "Fn::GetAtt": [
+          "Repository",
+          "RepositoryUri"
+        ]
+      }
+    }
+  }
+}

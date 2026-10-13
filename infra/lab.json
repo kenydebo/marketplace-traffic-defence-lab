@@ -1,0 +1,1128 @@
+{
+  "AWSTemplateFormatVersion": "2010-09-09",
+  "Description": "Disposable marketplace: CloudFront/WAF, private ALB, two Fargate tasks, private encrypted Redis.",
+  "Parameters": {
+    "ImageUri": {
+      "Type": "String",
+      "AllowedPattern": "[A-Za-z0-9./:_@-]+"
+    },
+    "SourceCidr": {
+      "Type": "String",
+      "AllowedPattern": "[0-9.]+/32"
+    },
+    "AvailabilityZoneA": {
+      "Type": "AWS::EC2::AvailabilityZone::Name"
+    },
+    "AvailabilityZoneB": {
+      "Type": "AWS::EC2::AvailabilityZone::Name"
+    },
+    "CloudFrontPrefixList": {
+      "Type": "String",
+      "AllowedPattern": "pl-[a-f0-9]+"
+    },
+    "ProbeMode": {
+      "Type": "String",
+      "AllowedValues": [
+        "Count",
+        "Block"
+      ],
+      "Default": "Count"
+    }
+  },
+  "Conditions": {
+    "EnforceProbe": {
+      "Fn::Equals": [
+        {
+          "Ref": "ProbeMode"
+        },
+        "Block"
+      ]
+    }
+  },
+  "Resources": {
+    "Vpc": {
+      "Type": "AWS::EC2::VPC",
+      "Properties": {
+        "CidrBlock": "10.88.0.0/16",
+        "EnableDnsSupport": true,
+        "EnableDnsHostnames": true,
+        "Tags": [
+          {
+            "Key": "Project",
+            "Value": "marketplace-traffic-defence-lab"
+          }
+        ]
+      }
+    },
+    "Gateway": {
+      "Type": "AWS::EC2::InternetGateway",
+      "Properties": {}
+    },
+    "GatewayAttachment": {
+      "Type": "AWS::EC2::VPCGatewayAttachment",
+      "Properties": {
+        "VpcId": {
+          "Ref": "Vpc"
+        },
+        "InternetGatewayId": {
+          "Ref": "Gateway"
+        }
+      }
+    },
+    "PublicRoutes": {
+      "Type": "AWS::EC2::RouteTable",
+      "Properties": {
+        "VpcId": {
+          "Ref": "Vpc"
+        }
+      }
+    },
+    "InternetRoute": {
+      "Type": "AWS::EC2::Route",
+      "Properties": {
+        "RouteTableId": {
+          "Ref": "PublicRoutes"
+        },
+        "DestinationCidrBlock": "0.0.0.0/0",
+        "GatewayId": {
+          "Ref": "Gateway"
+        }
+      },
+      "DependsOn": "GatewayAttachment"
+    },
+    "PublicA": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": {
+          "Ref": "Vpc"
+        },
+        "AvailabilityZone": {
+          "Ref": "AvailabilityZoneA"
+        },
+        "CidrBlock": "10.88.1.0/24"
+      }
+    },
+    "PrivateA": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": {
+          "Ref": "Vpc"
+        },
+        "AvailabilityZone": {
+          "Ref": "AvailabilityZoneA"
+        },
+        "CidrBlock": "10.88.11.0/24"
+      }
+    },
+    "RouteAssociationA": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "PublicA"
+        },
+        "RouteTableId": {
+          "Ref": "PublicRoutes"
+        }
+      }
+    },
+    "PublicB": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": {
+          "Ref": "Vpc"
+        },
+        "AvailabilityZone": {
+          "Ref": "AvailabilityZoneB"
+        },
+        "CidrBlock": "10.88.2.0/24"
+      }
+    },
+    "PrivateB": {
+      "Type": "AWS::EC2::Subnet",
+      "Properties": {
+        "VpcId": {
+          "Ref": "Vpc"
+        },
+        "AvailabilityZone": {
+          "Ref": "AvailabilityZoneB"
+        },
+        "CidrBlock": "10.88.12.0/24"
+      }
+    },
+    "RouteAssociationB": {
+      "Type": "AWS::EC2::SubnetRouteTableAssociation",
+      "Properties": {
+        "SubnetId": {
+          "Ref": "PublicB"
+        },
+        "RouteTableId": {
+          "Ref": "PublicRoutes"
+        }
+      }
+    },
+    "AlbGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "VpcId": {
+          "Ref": "Vpc"
+        },
+        "GroupDescription": "CloudFront prefix only; internal ALB",
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": 80,
+            "ToPort": 80,
+            "SourcePrefixListId": {
+              "Ref": "CloudFrontPrefixList"
+            }
+          }
+        ]
+      }
+    },
+    "AppGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "VpcId": {
+          "Ref": "Vpc"
+        },
+        "GroupDescription": "Only ALB can reach application",
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": 8080,
+            "ToPort": 8080,
+            "SourceSecurityGroupId": {
+              "Ref": "AlbGroup"
+            }
+          }
+        ]
+      }
+    },
+    "RedisGroup": {
+      "Type": "AWS::EC2::SecurityGroup",
+      "Properties": {
+        "VpcId": {
+          "Ref": "Vpc"
+        },
+        "GroupDescription": "Redis private, only application clients",
+        "SecurityGroupIngress": [
+          {
+            "IpProtocol": "tcp",
+            "FromPort": 6379,
+            "ToPort": 6379,
+            "SourceSecurityGroupId": {
+              "Ref": "AppGroup"
+            }
+          }
+        ]
+      }
+    },
+    "SessionSecret": {
+      "Type": "AWS::SecretsManager::Secret",
+      "Properties": {
+        "GenerateSecretString": {
+          "SecretStringTemplate": "{}",
+          "GenerateStringKey": "token",
+          "PasswordLength": 40,
+          "ExcludePunctuation": true
+        }
+      }
+    },
+    "OriginSecret": {
+      "Type": "AWS::SecretsManager::Secret",
+      "Properties": {
+        "GenerateSecretString": {
+          "SecretStringTemplate": "{}",
+          "GenerateStringKey": "token",
+          "PasswordLength": 40,
+          "ExcludePunctuation": true
+        }
+      }
+    },
+    "RedisSecret": {
+      "Type": "AWS::SecretsManager::Secret",
+      "Properties": {
+        "GenerateSecretString": {
+          "SecretStringTemplate": "{}",
+          "GenerateStringKey": "token",
+          "PasswordLength": 40,
+          "ExcludePunctuation": true
+        }
+      }
+    },
+    "LoginSecret": {
+      "Type": "AWS::SecretsManager::Secret",
+      "Properties": {
+        "GenerateSecretString": {
+          "SecretStringTemplate": "{}",
+          "GenerateStringKey": "token",
+          "PasswordLength": 40,
+          "ExcludePunctuation": true
+        }
+      }
+    },
+    "RedisSubnets": {
+      "Type": "AWS::ElastiCache::SubnetGroup",
+      "Properties": {
+        "Description": "Private disposable Redis",
+        "SubnetIds": [
+          {
+            "Ref": "PrivateA"
+          },
+          {
+            "Ref": "PrivateB"
+          }
+        ]
+      }
+    },
+    "Redis": {
+      "Type": "AWS::ElastiCache::ReplicationGroup",
+      "Properties": {
+        "ReplicationGroupDescription": "Lab shared limiter, one primary; no HA claim",
+        "Engine": "redis",
+        "EngineVersion": "7.1",
+        "CacheNodeType": "cache.t4g.micro",
+        "NumCacheClusters": 1,
+        "AutomaticFailoverEnabled": false,
+        "MultiAZEnabled": false,
+        "TransitEncryptionEnabled": true,
+        "AtRestEncryptionEnabled": true,
+        "AuthToken": {
+          "Fn::Sub": "{{resolve:secretsmanager:${RedisSecret}:SecretString:token}}"
+        },
+        "SnapshotRetentionLimit": 0,
+        "CacheSubnetGroupName": {
+          "Ref": "RedisSubnets"
+        },
+        "SecurityGroupIds": [
+          {
+            "Ref": "RedisGroup"
+          }
+        ]
+      }
+    },
+    "AppLogs": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "RetentionInDays": 1
+      }
+    },
+    "WafLogs": {
+      "Type": "AWS::Logs::LogGroup",
+      "Properties": {
+        "LogGroupName": {
+          "Fn::Sub": "aws-waf-logs-${AWS::StackName}"
+        },
+        "RetentionInDays": 1
+      }
+    },
+    "ExecutionRole": {
+      "Type": "AWS::IAM::Role",
+      "Properties": {
+        "AssumeRolePolicyDocument": {
+          "Version": "2012-10-17",
+          "Statement": [
+            {
+              "Effect": "Allow",
+              "Principal": {
+                "Service": "ecs-tasks.amazonaws.com"
+              },
+              "Action": "sts:AssumeRole"
+            }
+          ]
+        },
+        "ManagedPolicyArns": [
+          {
+            "Fn::Sub": "arn:${AWS::Partition}:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy"
+          }
+        ],
+        "Policies": [
+          {
+            "PolicyName": "ReadLabSecrets",
+            "PolicyDocument": {
+              "Version": "2012-10-17",
+              "Statement": [
+                {
+                  "Effect": "Allow",
+                  "Action": "secretsmanager:GetSecretValue",
+                  "Resource": [
+                    {
+                      "Ref": "SessionSecret"
+                    },
+                    {
+                      "Ref": "OriginSecret"
+                    },
+                    {
+                      "Ref": "RedisSecret"
+                    },
+                    {
+                      "Ref": "LoginSecret"
+                    }
+                  ]
+                }
+              ]
+            }
+          }
+        ]
+      }
+    },
+    "Cluster": {
+      "Type": "AWS::ECS::Cluster",
+      "Properties": {}
+    },
+    "Task": {
+      "Type": "AWS::ECS::TaskDefinition",
+      "Properties": {
+        "RequiresCompatibilities": [
+          "FARGATE"
+        ],
+        "NetworkMode": "awsvpc",
+        "Cpu": "256",
+        "Memory": "512",
+        "RuntimePlatform": {
+          "CpuArchitecture": "X86_64",
+          "OperatingSystemFamily": "LINUX"
+        },
+        "ExecutionRoleArn": {
+          "Fn::GetAtt": [
+            "ExecutionRole",
+            "Arn"
+          ]
+        },
+        "ContainerDefinitions": [
+          {
+            "Name": "marketplace",
+            "Image": {
+              "Ref": "ImageUri"
+            },
+            "Essential": true,
+            "ReadonlyRootFilesystem": true,
+            "PortMappings": [
+              {
+                "ContainerPort": 8080
+              }
+            ],
+            "Environment": [
+              {
+                "Name": "REDIS_HOST",
+                "Value": {
+                  "Fn::GetAtt": [
+                    "Redis",
+                    "PrimaryEndPoint.Address"
+                  ]
+                }
+              }
+            ],
+            "Secrets": [
+              {
+                "Name": "SESSION_SECRET",
+                "ValueFrom": {
+                  "Fn::Sub": "${SessionSecret}:token::"
+                }
+              },
+              {
+                "Name": "ORIGIN_TOKEN",
+                "ValueFrom": {
+                  "Fn::Sub": "${OriginSecret}:token::"
+                }
+              },
+              {
+                "Name": "REDIS_PASSWORD",
+                "ValueFrom": {
+                  "Fn::Sub": "${RedisSecret}:token::"
+                }
+              },
+              {
+                "Name": "DEMO_LOGIN_PASSWORD",
+                "ValueFrom": {
+                  "Fn::Sub": "${LoginSecret}:token::"
+                }
+              }
+            ],
+            "LogConfiguration": {
+              "LogDriver": "awslogs",
+              "Options": {
+                "awslogs-group": {
+                  "Ref": "AppLogs"
+                },
+                "awslogs-region": {
+                  "Ref": "AWS::Region"
+                },
+                "awslogs-stream-prefix": "app"
+              }
+            }
+          }
+        ]
+      }
+    },
+    "Alb": {
+      "Type": "AWS::ElasticLoadBalancingV2::LoadBalancer",
+      "Properties": {
+        "Scheme": "internal",
+        "Type": "application",
+        "Subnets": [
+          {
+            "Ref": "PrivateA"
+          },
+          {
+            "Ref": "PrivateB"
+          }
+        ],
+        "SecurityGroups": [
+          {
+            "Ref": "AlbGroup"
+          }
+        ],
+        "LoadBalancerAttributes": [
+          {
+            "Key": "deletion_protection.enabled",
+            "Value": "false"
+          }
+        ]
+      }
+    },
+    "Targets": {
+      "Type": "AWS::ElasticLoadBalancingV2::TargetGroup",
+      "Properties": {
+        "VpcId": {
+          "Ref": "Vpc"
+        },
+        "Protocol": "HTTP",
+        "Port": 8080,
+        "TargetType": "ip",
+        "HealthCheckPath": "/health",
+        "HealthCheckIntervalSeconds": 10,
+        "HealthyThresholdCount": 2,
+        "TargetGroupAttributes": [
+          {
+            "Key": "deregistration_delay.timeout_seconds",
+            "Value": "10"
+          }
+        ]
+      }
+    },
+    "Listener": {
+      "Type": "AWS::ElasticLoadBalancingV2::Listener",
+      "Properties": {
+        "LoadBalancerArn": {
+          "Ref": "Alb"
+        },
+        "Protocol": "HTTP",
+        "Port": 80,
+        "DefaultActions": [
+          {
+            "Type": "forward",
+            "TargetGroupArn": {
+              "Ref": "Targets"
+            }
+          }
+        ]
+      }
+    },
+    "Service": {
+      "Type": "AWS::ECS::Service",
+      "Properties": {
+        "Cluster": {
+          "Ref": "Cluster"
+        },
+        "TaskDefinition": {
+          "Ref": "Task"
+        },
+        "DesiredCount": 2,
+        "LaunchType": "FARGATE",
+        "HealthCheckGracePeriodSeconds": 30,
+        "DeploymentConfiguration": {
+          "DeploymentCircuitBreaker": {
+            "Enable": true,
+            "Rollback": true
+          },
+          "MaximumPercent": 200,
+          "MinimumHealthyPercent": 50
+        },
+        "NetworkConfiguration": {
+          "AwsvpcConfiguration": {
+            "AssignPublicIp": "ENABLED",
+            "Subnets": [
+              {
+                "Ref": "PublicA"
+              },
+              {
+                "Ref": "PublicB"
+              }
+            ],
+            "SecurityGroups": [
+              {
+                "Ref": "AppGroup"
+              }
+            ]
+          }
+        },
+        "LoadBalancers": [
+          {
+            "ContainerName": "marketplace",
+            "ContainerPort": 8080,
+            "TargetGroupArn": {
+              "Ref": "Targets"
+            }
+          }
+        ]
+      },
+      "DependsOn": [
+        "Listener",
+        "InternetRoute",
+        "RouteAssociationA",
+        "RouteAssociationB"
+      ]
+    },
+    "VpcOrigin": {
+      "Type": "AWS::CloudFront::VpcOrigin",
+      "Properties": {
+        "VpcOriginEndpointConfig": {
+          "Arn": {
+            "Ref": "Alb"
+          },
+          "Name": {
+            "Fn::Sub": "${AWS::StackName}-origin"
+          },
+          "HTTPPort": 80,
+          "HTTPSPort": 443,
+          "OriginProtocolPolicy": "http-only"
+        }
+      },
+      "DependsOn": [
+        "GatewayAttachment",
+        "Listener"
+      ]
+    },
+    "Sources": {
+      "Type": "AWS::WAFv2::IPSet",
+      "Properties": {
+        "Scope": "CLOUDFRONT",
+        "IPAddressVersion": "IPV4",
+        "Addresses": [
+          {
+            "Ref": "SourceCidr"
+          }
+        ]
+      }
+    },
+    "Waf": {
+      "Type": "AWS::WAFv2::WebACL",
+      "Properties": {
+        "Scope": "CLOUDFRONT",
+        "DefaultAction": {
+          "Allow": {}
+        },
+        "Rules": [
+          {
+            "Name": "LabSourcesOnly",
+            "Priority": 0,
+            "Action": {
+              "Block": {}
+            },
+            "Statement": {
+              "NotStatement": {
+                "Statement": {
+                  "IPSetReferenceStatement": {
+                    "Arn": {
+                      "Fn::GetAtt": [
+                        "Sources",
+                        "Arn"
+                      ]
+                    }
+                  }
+                }
+              }
+            },
+            "VisibilityConfig": {
+              "CloudWatchMetricsEnabled": true,
+              "SampledRequestsEnabled": false,
+              "MetricName": "LabSourcesOnly"
+            }
+          },
+          {
+            "Name": "SyntheticMarker",
+            "Priority": 1,
+            "Action": {
+              "Block": {}
+            },
+            "Statement": {
+              "ByteMatchStatement": {
+                "SearchString": "lab-block-me",
+                "FieldToMatch": {
+                  "SingleHeader": {
+                    "Name": "user-agent"
+                  }
+                },
+                "PositionalConstraint": "CONTAINS",
+                "TextTransformations": [
+                  {
+                    "Priority": 0,
+                    "Type": "NONE"
+                  }
+                ]
+              }
+            },
+            "VisibilityConfig": {
+              "CloudWatchMetricsEnabled": true,
+              "SampledRequestsEnabled": false,
+              "MetricName": "SyntheticMarker"
+            }
+          },
+          {
+            "Name": "EnforcementProbe",
+            "Priority": 2,
+            "Action": {
+              "Fn::If": [
+                "EnforceProbe",
+                {
+                  "Block": {}
+                },
+                {
+                  "Count": {}
+                }
+              ]
+            },
+            "Statement": {
+              "RateBasedStatement": {
+                "Limit": 10,
+                "EvaluationWindowSec": 60,
+                "AggregateKeyType": "IP",
+                "ScopeDownStatement": {
+                  "AndStatement": {
+                    "Statements": [
+                      {
+                        "ByteMatchStatement": {
+                          "SearchString": "/api/catalog",
+                          "FieldToMatch": {
+                            "UriPath": {}
+                          },
+                          "PositionalConstraint": "EXACTLY",
+                          "TextTransformations": [
+                            {
+                              "Priority": 0,
+                              "Type": "NONE"
+                            }
+                          ]
+                        }
+                      },
+                      {
+                        "ByteMatchStatement": {
+                          "SearchString": "lab-rate-probe",
+                          "FieldToMatch": {
+                            "SingleHeader": {
+                              "Name": "user-agent"
+                            }
+                          },
+                          "PositionalConstraint": "EXACTLY",
+                          "TextTransformations": [
+                            {
+                              "Priority": 0,
+                              "Type": "NONE"
+                            }
+                          ]
+                        }
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "VisibilityConfig": {
+              "CloudWatchMetricsEnabled": true,
+              "SampledRequestsEnabled": false,
+              "MetricName": "EnforcementProbe"
+            }
+          },
+          {
+            "Name": "CatalogObserve",
+            "Priority": 10,
+            "Action": {
+              "Count": {}
+            },
+            "Statement": {
+              "RateBasedStatement": {
+                "Limit": 90,
+                "EvaluationWindowSec": 60,
+                "AggregateKeyType": "IP",
+                "ScopeDownStatement": {
+                  "ByteMatchStatement": {
+                    "SearchString": "/api/catalog",
+                    "FieldToMatch": {
+                      "UriPath": {}
+                    },
+                    "PositionalConstraint": "EXACTLY",
+                    "TextTransformations": [
+                      {
+                        "Priority": 0,
+                        "Type": "NONE"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "VisibilityConfig": {
+              "CloudWatchMetricsEnabled": true,
+              "SampledRequestsEnabled": false,
+              "MetricName": "catalogObserve"
+            }
+          },
+          {
+            "Name": "ProductsObserve",
+            "Priority": 11,
+            "Action": {
+              "Count": {}
+            },
+            "Statement": {
+              "RateBasedStatement": {
+                "Limit": 90,
+                "EvaluationWindowSec": 60,
+                "AggregateKeyType": "IP",
+                "ScopeDownStatement": {
+                  "ByteMatchStatement": {
+                    "SearchString": "/api/products/",
+                    "FieldToMatch": {
+                      "UriPath": {}
+                    },
+                    "PositionalConstraint": "STARTS_WITH",
+                    "TextTransformations": [
+                      {
+                        "Priority": 0,
+                        "Type": "NONE"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "VisibilityConfig": {
+              "CloudWatchMetricsEnabled": true,
+              "SampledRequestsEnabled": false,
+              "MetricName": "productsObserve"
+            }
+          },
+          {
+            "Name": "SearchObserve",
+            "Priority": 12,
+            "Action": {
+              "Count": {}
+            },
+            "Statement": {
+              "RateBasedStatement": {
+                "Limit": 90,
+                "EvaluationWindowSec": 60,
+                "AggregateKeyType": "IP",
+                "ScopeDownStatement": {
+                  "ByteMatchStatement": {
+                    "SearchString": "/api/search",
+                    "FieldToMatch": {
+                      "UriPath": {}
+                    },
+                    "PositionalConstraint": "EXACTLY",
+                    "TextTransformations": [
+                      {
+                        "Priority": 0,
+                        "Type": "NONE"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "VisibilityConfig": {
+              "CloudWatchMetricsEnabled": true,
+              "SampledRequestsEnabled": false,
+              "MetricName": "searchObserve"
+            }
+          },
+          {
+            "Name": "CartObserve",
+            "Priority": 14,
+            "Action": {
+              "Count": {}
+            },
+            "Statement": {
+              "RateBasedStatement": {
+                "Limit": 90,
+                "EvaluationWindowSec": 60,
+                "AggregateKeyType": "IP",
+                "ScopeDownStatement": {
+                  "ByteMatchStatement": {
+                    "SearchString": "/api/cart",
+                    "FieldToMatch": {
+                      "UriPath": {}
+                    },
+                    "PositionalConstraint": "EXACTLY",
+                    "TextTransformations": [
+                      {
+                        "Priority": 0,
+                        "Type": "NONE"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "VisibilityConfig": {
+              "CloudWatchMetricsEnabled": true,
+              "SampledRequestsEnabled": false,
+              "MetricName": "cartObserve"
+            }
+          },
+          {
+            "Name": "SessionObserve",
+            "Priority": 15,
+            "Action": {
+              "Count": {}
+            },
+            "Statement": {
+              "RateBasedStatement": {
+                "Limit": 90,
+                "EvaluationWindowSec": 60,
+                "AggregateKeyType": "IP",
+                "ScopeDownStatement": {
+                  "ByteMatchStatement": {
+                    "SearchString": "/api/session",
+                    "FieldToMatch": {
+                      "UriPath": {}
+                    },
+                    "PositionalConstraint": "EXACTLY",
+                    "TextTransformations": [
+                      {
+                        "Priority": 0,
+                        "Type": "NONE"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "VisibilityConfig": {
+              "CloudWatchMetricsEnabled": true,
+              "SampledRequestsEnabled": false,
+              "MetricName": "sessionObserve"
+            }
+          },
+          {
+            "Name": "JA4Observe",
+            "Priority": 30,
+            "Action": {
+              "Count": {}
+            },
+            "Statement": {
+              "RateBasedStatement": {
+                "Limit": 30,
+                "EvaluationWindowSec": 60,
+                "AggregateKeyType": "CUSTOM_KEYS",
+                "CustomKeys": [
+                  {
+                    "JA4Fingerprint": {
+                      "FallbackBehavior": "NO_MATCH"
+                    }
+                  }
+                ],
+                "ScopeDownStatement": {
+                  "ByteMatchStatement": {
+                    "SearchString": "/api/products/",
+                    "FieldToMatch": {
+                      "UriPath": {}
+                    },
+                    "PositionalConstraint": "STARTS_WITH",
+                    "TextTransformations": [
+                      {
+                        "Priority": 0,
+                        "Type": "NONE"
+                      }
+                    ]
+                  }
+                }
+              }
+            },
+            "VisibilityConfig": {
+              "CloudWatchMetricsEnabled": true,
+              "SampledRequestsEnabled": false,
+              "MetricName": "JA4Observe"
+            }
+          }
+        ],
+        "VisibilityConfig": {
+          "CloudWatchMetricsEnabled": true,
+          "SampledRequestsEnabled": false,
+          "MetricName": "MarketplaceLab"
+        }
+      }
+    },
+    "WafLogging": {
+      "Type": "AWS::WAFv2::LoggingConfiguration",
+      "Properties": {
+        "ResourceArn": {
+          "Fn::GetAtt": [
+            "Waf",
+            "Arn"
+          ]
+        },
+        "LogDestinationConfigs": [
+          {
+            "Fn::GetAtt": [
+              "WafLogs",
+              "Arn"
+            ]
+          }
+        ],
+        "RedactedFields": [
+          {
+            "SingleHeader": {
+              "Name": "authorization"
+            }
+          },
+          {
+            "SingleHeader": {
+              "Name": "cookie"
+            }
+          },
+          {
+            "SingleHeader": {
+              "Name": "x-lab-origin-token"
+            }
+          }
+        ]
+      }
+    },
+    "OriginPolicy": {
+      "Type": "AWS::CloudFront::OriginRequestPolicy",
+      "Properties": {
+        "OriginRequestPolicyConfig": {
+          "Name": {
+            "Fn::Sub": "${AWS::StackName}-metadata"
+          },
+          "CookiesConfig": {
+            "CookieBehavior": "all"
+          },
+          "QueryStringsConfig": {
+            "QueryStringBehavior": "all"
+          },
+          "HeadersConfig": {
+            "HeaderBehavior": "allViewerAndWhitelistCloudFront",
+            "Headers": [
+              "CloudFront-Viewer-Address",
+              "CloudFront-Viewer-ASN",
+              "CloudFront-Viewer-JA3-Fingerprint",
+              "CloudFront-Viewer-JA4-Fingerprint"
+            ]
+          }
+        }
+      }
+    },
+    "Distribution": {
+      "Type": "AWS::CloudFront::Distribution",
+      "Properties": {
+        "DistributionConfig": {
+          "Enabled": true,
+          "Comment": "Marketplace Traffic Defence Lab",
+          "PriceClass": "PriceClass_100",
+          "HttpVersion": "http2",
+          "IPV6Enabled": false,
+          "WebACLId": {
+            "Fn::GetAtt": [
+              "Waf",
+              "Arn"
+            ]
+          },
+          "Origins": [
+            {
+              "Id": "marketplace",
+              "DomainName": {
+                "Fn::GetAtt": [
+                  "Alb",
+                  "DNSName"
+                ]
+              },
+              "VpcOriginConfig": {
+                "VpcOriginId": {
+                  "Fn::GetAtt": [
+                    "VpcOrigin",
+                    "Id"
+                  ]
+                }
+              },
+              "OriginCustomHeaders": [
+                {
+                  "HeaderName": "X-Lab-Origin-Token",
+                  "HeaderValue": {
+                    "Fn::Sub": "{{resolve:secretsmanager:${OriginSecret}:SecretString:token}}"
+                  }
+                }
+              ]
+            }
+          ],
+          "DefaultCacheBehavior": {
+            "TargetOriginId": "marketplace",
+            "ViewerProtocolPolicy": "https-only",
+            "AllowedMethods": [
+              "GET",
+              "HEAD",
+              "OPTIONS",
+              "PUT",
+              "POST",
+              "PATCH",
+              "DELETE"
+            ],
+            "CachedMethods": [
+              "GET",
+              "HEAD"
+            ],
+            "CachePolicyId": "4135ea2d-6df8-44a3-9df3-4b5a84be39ad",
+            "OriginRequestPolicyId": {
+              "Ref": "OriginPolicy"
+            }
+          },
+          "ViewerCertificate": {
+            "CloudFrontDefaultCertificate": true
+          }
+        }
+      }
+    }
+  },
+  "Outputs": {
+    "Endpoint": {
+      "Value": {
+        "Fn::Sub": "https://${Distribution.DomainName}"
+      }
+    },
+    "AppLogGroup": {
+      "Value": {
+        "Ref": "AppLogs"
+      }
+    },
+    "WafLogGroup": {
+      "Value": {
+        "Ref": "WafLogs"
+      }
+    },
+    "LoginSecretArn": {
+      "Value": {
+        "Ref": "LoginSecret"
+      }
+    },
+    "WafArn": {
+      "Value": {
+        "Fn::GetAtt": [
+          "Waf",
+          "Arn"
+        ]
+      }
+    },
+    "AlbScheme": {
+      "Value": "internal"
+    },
+    "VpcOriginId": {
+      "Value": {
+        "Fn::GetAtt": [
+          "VpcOrigin",
+          "Id"
+        ]
+      }
+    }
+  }
+}

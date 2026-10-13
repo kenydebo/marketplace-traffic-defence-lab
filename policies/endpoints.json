@@ -1,0 +1,8 @@
+{
+  "catalog": {"capacity": 12, "refill_per_second": 2, "fallback": "bounded_local", "edge_limit": 120, "owner": "Catalog service", "risk": "Bulk scraping with buyer friction"},
+  "products": {"capacity": 12, "refill_per_second": 2, "fallback": "bounded_local", "edge_limit": 120, "owner": "Catalog service", "risk": "Enumeration across product IDs"},
+  "search": {"capacity": 4, "refill_per_second": 1, "fallback": "bounded_local", "edge_limit": 60, "owner": "Search service", "risk": "Expensive query amplification"},
+  "login": {"capacity": 5, "refill_per_second": 0.2, "fallback": "reject", "edge_limit": 30, "owner": "Identity service", "risk": "Credential abuse"},
+  "cart": {"capacity": 10, "refill_per_second": 2, "fallback": "reject", "edge_limit": 180, "owner": "Buyer experience", "risk": "Buyer disruption and state-changing abuse"},
+  "session": {"capacity": 10, "refill_per_second": 1, "fallback": "reject", "edge_limit": 60, "owner": "Identity service", "risk": "Anonymous session rotation"}
+}

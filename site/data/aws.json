@@ -1,0 +1,6 @@
+{
+  "evidence_type": "aws_deployment_in_progress",
+  "checks": [],
+  "cleanup_verified": false,
+  "failure_summary": "Provisioning is in progress; live verification has not yet completed."
+}

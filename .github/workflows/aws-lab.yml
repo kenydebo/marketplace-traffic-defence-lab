@@ -1,0 +1,58 @@
+name: Disposable AWS lab
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: disposable-aws-lab
+  cancel-in-progress: false
+jobs:
+  deploy-test-cleanup:
+    if: github.ref == 'refs/heads/main' && github.repository == 'kenydebo/marketplace-traffic-defence-lab'
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_SESSION_TOKEN: ${{ secrets.AWS_SESSION_TOKEN }}
+      AWS_DEFAULT_REGION: ${{ vars.AWS_REGION || 'us-east-1' }}
+      AWS_EXPECTED_ACCOUNT_ID: ${{ vars.AWS_EXPECTED_ACCOUNT_ID }}
+      AWS_EC2_METADATA_DISABLED: 'true'
+      AWS_PAGER: ''
+    steps:
+      - uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1 # v6
+        with:
+          python-version: '3.12'
+      - name: Verify source and reproduce recommendations
+        run: |
+          python scripts/check_public.py
+          python traffic/generate.py
+          python analysis/recommend.py
+          python infra/generate.py
+          python tests/recommendation_test.py
+      - name: Verify disposable account and prepare run inventory
+        run: python scripts/aws_lab.py prepare
+      - name: Build immutable application image
+        run: python scripts/aws_lab.py bootstrap
+      - name: Deploy edge and application controls
+        run: python scripts/aws_lab.py deploy
+      - name: Test bounded controls and Count rollback
+        run: python scripts/aws_lab.py test
+      - name: Collect sanitized log evidence
+        if: always()
+        run: |
+          python -c "import json,pathlib; p=pathlib.Path('.local/aws-run.json'); exit(0 if p.exists() and json.loads(p.read_text()).get('outputs') else 1)" && python scripts/aws_lab.py collect
+      - name: Remove only this run's resources and verify closure
+        if: always()
+        run: python scripts/aws_lab.py cleanup
+      - name: Upload sanitized evidence only
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
+        with:
+          name: marketplace-sanitized-evidence
+          path: |
+            site/data/aws.json
+            site/data/recommendations.json
+          if-no-files-found: warn
+          retention-days: 7

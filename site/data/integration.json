@@ -1,0 +1,108 @@
+{
+  "evidence_type": "local_integration_verified",
+  "runtime": "Docker, two Python instances, Redis 7.4",
+  "outage_tested": true,
+  "checks": [
+    {
+      "check": "shared allowance across two instances",
+      "passed": true,
+      "detail": {
+        "requests": 40,
+        "allowed": 12,
+        "rejected": 28,
+        "maximum_given_elapsed_time": 13,
+        "duration_seconds": 0.021,
+        "instances": [
+          "api-a",
+          "api-b"
+        ]
+      }
+    },
+    {
+      "check": "no fallback during shared-state test",
+      "passed": true,
+      "detail": {
+        "responses": 40
+      }
+    },
+    {
+      "check": "independent signed session gets own allowance",
+      "passed": true,
+      "detail": {}
+    },
+    {
+      "check": "modified token rejected",
+      "passed": true,
+      "detail": {}
+    },
+    {
+      "check": "arbitrary account header grants no identity",
+      "passed": true,
+      "detail": {}
+    },
+    {
+      "check": "product IDs share one route-class allowance",
+      "passed": true,
+      "detail": {
+        "statuses": [
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          200,
+          429,
+          429,
+          429,
+          429
+        ]
+      }
+    },
+    {
+      "check": "query cost consumes shared tokens",
+      "passed": true,
+      "detail": {
+        "first_cost": 4,
+        "next_status": 429
+      }
+    },
+    {
+      "check": "excessive query cost rejected",
+      "passed": true,
+      "detail": {}
+    },
+    {
+      "check": "health remains available",
+      "passed": true,
+      "detail": {}
+    },
+    {
+      "check": "Redis outage gives bounded browsing fallback",
+      "passed": true,
+      "detail": {
+        "statuses": [
+          200,
+          200,
+          429,
+          429
+        ]
+      }
+    },
+    {
+      "check": "Redis outage rejects login",
+      "passed": true,
+      "detail": {}
+    },
+    {
+      "check": "Redis outage rejects cart",
+      "passed": true,
+      "detail": {}
+    }
+  ]
+}

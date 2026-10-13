@@ -1,0 +1,13 @@
+.env
+.venv/
+.local/
+__pycache__/
+*.pyc
+.terraform/
+*.tfstate*
+*.tfplan
+*.tfvars
+!*.tfvars.example
+raw-logs/
+credentials*
+node_modules/

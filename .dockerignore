@@ -1,0 +1,10 @@
+.git
+.env
+.local
+.venv
+infra
+site
+tests
+docs
+__pycache__
+**/__pycache__
