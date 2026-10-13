@@ -27,7 +27,7 @@ The engine uses **Python's standard library**. No CrowdSec, ML, LLM, or opaque r
 
 The login candidate is deliberately retained for inspection but withheld when the separate shared-network holdout exceeds the buyer-impact budget. Below-threshold slow abuse remains visible as residual risk. JA4 values never independently cause a blocking recommendation.
 
-Read [engineering decisions](docs/DECISIONS.md), [operating runbook](docs/RUNBOOK.md), [security boundaries](SECURITY.md), and [evidence guide](docs/EVIDENCE.md).
+Read the [five-minute demo guide](docs/DEMO.md), [engineering decisions](docs/DECISIONS.md), [operating runbook](docs/RUNBOOK.md), [security boundaries](SECURITY.md), and [evidence guide](docs/EVIDENCE.md).
 
 ## AWS architecture
 
@@ -79,6 +79,8 @@ In **Settings → Secrets and variables → Actions**, configure:
 | Variable | `AWS_EXPECTED_ACCOUNT_ID` | The explicitly authorized lab account ID |
 
 Then **Actions → Disposable AWS lab → Run workflow** on `main`. The workflow verifies account identity, creates two isolated CloudFormation stacks, pushes a digest-pinned image, deploys, tests, collects sanitized evidence, and deletes its stacks. Application secrets are generated in AWS Secrets Manager and do not belong in GitHub variables.
+
+When a new lab supplies only a key and secret, remove any old `AWS_SESSION_TOKEN` secret. When it supplies three session credentials, refresh all three together.
 
 Updating credentials permits a new run; **CloudFormation recreates the environment**. Credentials alone do not recreate resources. Pluralsight accounts may deny required services. Permission failures are reported without claiming a successful deployment. The public dashboard survives lab expiry.
 

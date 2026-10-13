@@ -1,6 +1,230 @@
 {
-  "evidence_type": "aws_deployment_in_progress",
-  "checks": [],
+  "evidence_type": "aws_live_verified",
+  "tested_at": "2026-10-13T19:20:00.055376+00:00",
+  "checks": [
+    {
+      "check": "normal edge request",
+      "passed": true,
+      "detail": {}
+    },
+    {
+      "check": "synthetic WAF marker blocked",
+      "passed": true,
+      "detail": {}
+    },
+    {
+      "check": "anonymous signed session issued",
+      "passed": true,
+      "detail": {}
+    },
+    {
+      "check": "shared Redis allowance in AWS",
+      "passed": true,
+      "detail": {
+        "requests": 40,
+        "allowed": 13,
+        "rate_limited": 27,
+        "elapsed_seconds": 0.728,
+        "maximum_given_elapsed_time": 14,
+        "application_instances_seen": 2
+      }
+    },
+    {
+      "check": "both application instances observed",
+      "passed": true,
+      "detail": {}
+    },
+    {
+      "check": "tampered session rejected",
+      "passed": true,
+      "detail": {}
+    },
+    {
+      "check": "fixture account authenticates",
+      "passed": true,
+      "detail": {}
+    },
+    {
+      "check": "signed account can submit synthetic cart",
+      "passed": true,
+      "detail": {}
+    },
+    {
+      "check": "unsigned cart request rejected",
+      "passed": true,
+      "detail": {}
+    },
+    {
+      "check": "health remains available",
+      "passed": true,
+      "detail": {}
+    },
+    {
+      "check": "scoped WAF rate enforcement",
+      "passed": true,
+      "detail": {
+        "requests": 50,
+        "waf_block_responses": 5,
+        "maximum_probe_requests": 120
+      }
+    },
+    {
+      "check": "WAF catalog probe preserves health",
+      "passed": true,
+      "detail": {}
+    },
+    {
+      "check": "WAF probe rollback to Count",
+      "passed": true,
+      "detail": {}
+    },
+    {
+      "check": "AWS product ID rotation shares route allowance",
+      "passed": true,
+      "detail": {
+        "requests": 16,
+        "allowed": 12,
+        "rate_limited": 4
+      }
+    },
+    {
+      "check": "AWS expensive queries consume shared cost budget",
+      "passed": true,
+      "detail": {
+        "statuses": [
+          200,
+          429
+        ],
+        "cost_per_query": 4
+      }
+    },
+    {
+      "check": "AWS excessive query cost rejected",
+      "passed": true,
+      "detail": {}
+    },
+    {
+      "check": "AWS origin load balancer is internal",
+      "passed": true,
+      "detail": {}
+    },
+    {
+      "check": "eligible recommendations and JA4 remain Count; withheld login absent",
+      "passed": true,
+      "detail": {
+        "eligible_endpoint_policies": 5,
+        "observed_count_rules": 7
+      }
+    }
+  ],
   "cleanup_verified": false,
-  "failure_summary": "Provisioning is in progress; live verification has not yet completed."
+  "architecture": "CloudFront/WAF \u2192 private ALB \u2192 two Fargate tasks \u2192 encrypted Redis",
+  "live_aggregates": {
+    "app": {
+      "catalog / 200 / shared_redis": 60,
+      "session / 200 / shared_redis": 3,
+      "catalog / 429 / shared_redis": 27,
+      "catalog / 401 / validation": 1,
+      "login / 200 / shared_redis": 1,
+      "cart / 200 / shared_redis": 1,
+      "cart / 401 / validation": 1,
+      "products / 200 / shared_redis": 12,
+      "products / 429 / shared_redis": 4,
+      "search / 200 / shared_redis": 1,
+      "search / 429 / shared_redis": 1,
+      "search / 400 / validation": 1
+    },
+    "waf": {
+      "Default_Action / ALLOW": 116,
+      "SyntheticMarker / BLOCK": 1,
+      "EnforcementProbe / BLOCK": 5
+    },
+    "fingerprints": {
+      "t12d380500_10ed599f3404_67a080e8974e": 122
+    },
+    "endpoint_patterns": {
+      "catalog": {
+        "requests": 88,
+        "cost_units": 87,
+        "authentication_failures": 0,
+        "distinct_actor_pseudonyms": 2,
+        "distinct_resource_pseudonyms": 0
+      },
+      "session": {
+        "requests": 3,
+        "cost_units": 3,
+        "authentication_failures": 0,
+        "distinct_actor_pseudonyms": 1,
+        "distinct_resource_pseudonyms": 0
+      },
+      "login": {
+        "requests": 1,
+        "cost_units": 1,
+        "authentication_failures": 0,
+        "distinct_actor_pseudonyms": 1,
+        "distinct_resource_pseudonyms": 0
+      },
+      "cart": {
+        "requests": 2,
+        "cost_units": 1,
+        "authentication_failures": 0,
+        "distinct_actor_pseudonyms": 1,
+        "distinct_resource_pseudonyms": 0
+      },
+      "products": {
+        "requests": 16,
+        "cost_units": 16,
+        "authentication_failures": 0,
+        "distinct_actor_pseudonyms": 1,
+        "distinct_resource_pseudonyms": 16
+      },
+      "search": {
+        "requests": 3,
+        "cost_units": 8,
+        "authentication_failures": 0,
+        "distinct_actor_pseudonyms": 1,
+        "distinct_resource_pseudonyms": 0
+      }
+    },
+    "live_recommendation_status": "insufficient_evidence_unlabelled_live_traffic"
+  },
+  "waf_rate_block_attribution_verified": true,
+  "deployed_edge_rules": [
+    {
+      "name": "EnforcementProbe",
+      "action": "Count",
+      "limit": 10
+    },
+    {
+      "name": "CatalogObserve",
+      "action": "Count",
+      "limit": 90
+    },
+    {
+      "name": "ProductsObserve",
+      "action": "Count",
+      "limit": 90
+    },
+    {
+      "name": "SearchObserve",
+      "action": "Count",
+      "limit": 90
+    },
+    {
+      "name": "CartObserve",
+      "action": "Count",
+      "limit": 90
+    },
+    {
+      "name": "SessionObserve",
+      "action": "Count",
+      "limit": 90
+    },
+    {
+      "name": "JA4Observe",
+      "action": "Count",
+      "limit": 30
+    }
+  ],
+  "log_snapshot_note": "Asynchronous log delivery can make this bounded snapshot incomplete; it is not a full traffic denominator."
 }

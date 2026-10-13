@@ -12,9 +12,7 @@ function render() {
   const candidate=$('policy-view').value==='selected';
   const holdout=$('dataset').value==='holdout';
   const selected=p.selected;
-  let result=candidate ? (holdout ? p.holdout_result : selected) : p.baseline_result;
-  // A current-policy holdout was not measured in this output; do not substitute another dataset.
-  if(!candidate && holdout) { $('dataset').value='validation'; result=p.baseline_result; }
+  const result=candidate ? (holdout ? p.holdout_result : selected) : (holdout ? p.baseline_holdout_result : p.baseline_result);
   write('owner',p.owner+' / PROPOSED LAB OWNER'); write('route','/api/'+p.route+(p.route==='products'?'/{id}':'')); write('risk',p.risk);
   write('decision-badge',p.decision==='propose_observation'?'Observation proposal':'Withheld: holdout failed');
   $('decision-badge').className='pill'+(p.decision==='propose_observation'?'':' warn');
@@ -52,6 +50,7 @@ function evidence(){
   write('aws-summary',`${count} cloud checks passed. ${cloud.cleanup_verified?'Disposable resources removed; the evidence remains.':'Cleanup is not yet verified.'} ${cloud.failure_summary ?? ''}`);
   for(const c of cloud.checks ?? [])appendText($('aws-checks'),'li',`${c.passed?'✓':'✕'} ${c.check}`,c.passed?'':'failed');
   if(cloud.live_aggregates){appendText($('live-aggregates'),'h4','Live WAF decisions');for(const [k,v] of Object.entries(cloud.live_aggregates.waf))appendText($('live-aggregates'),'p',`${k}: ${v}`);appendText($('live-aggregates'),'p','Live traffic is unlabelled. It does not establish detection accuracy.');}
+  if(cloud.deployed_edge_rules){appendText($('live-aggregates'),'h4','Verified deployed policy actions');for(const rule of cloud.deployed_edge_rules)appendText($('live-aggregates'),'p',`${rule.name}: ${rule.action} / ${rule.limit}`);}
   $('aws-download').hidden=false;
 }
 Promise.all([get('recommendations.json'),get('integration.json'),get('aws.json',true)]).then(([r,l,c])=>{

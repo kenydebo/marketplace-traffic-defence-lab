@@ -78,12 +78,13 @@ def build(events, policies, source_hash):
             if e.get('resource'): a['resources'].add(e['resource'])
             fingerprints[e['ja4']].add(e['source'])
         observed = replay(validation, policy['capacity'], policy['refill_per_second'])
+        baseline_holdout = replay(holdout, policy['capacity'], policy['refill_per_second']) if holdout else None
         edge_limit = max(10, math.ceil(per_source_p99*1.5))
         proposals.append({'route': route, 'decision': 'propose_observation' if selected and holdout_passed else 'insufficient_evidence',
             'owner': policy['owner'], 'risk': policy['risk'], 'evidence_type': 'synthetic_replay',
             'calibration': {'requests': len(calibration), 'p99_cost_per_key_second': p99,
                 'p99_requests_per_source_minute': per_source_p99, 'trusted_baseline': True},
-            'baseline_policy': policy, 'baseline_result': observed, 'candidates': candidates,
+            'baseline_policy': policy, 'baseline_result': observed, 'baseline_holdout_result': baseline_holdout, 'candidates': candidates,
             'selected': selected, 'holdout_result': holdout_result, 'holdout_passed': holdout_passed,
             'observations': {'maximum_requests_per_actor': max(a['requests'] for a in actors.values()),
                 'maximum_cost_per_actor': max(a['cost'] for a in actors.values()),

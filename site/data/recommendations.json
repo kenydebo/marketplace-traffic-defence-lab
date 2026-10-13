@@ -108,6 +108,82 @@
           }
         ]
       },
+      "baseline_holdout_result": {
+        "legitimate_allowed": 180,
+        "legitimate_rejected": 0,
+        "abusive_allowed": 152,
+        "abusive_rejected": 496,
+        "legitimate_rejection_rate": 0.0,
+        "abuse_rejection_rate": 0.7654,
+        "timeline": [
+          {
+            "second": 0,
+            "legitimate": 18,
+            "abusive": 0,
+            "rejected": 0
+          },
+          {
+            "second": 10,
+            "legitimate": 54,
+            "abusive": 0,
+            "rejected": 0
+          },
+          {
+            "second": 20,
+            "legitimate": 36,
+            "abusive": 0,
+            "rejected": 0
+          },
+          {
+            "second": 30,
+            "legitimate": 54,
+            "abusive": 0,
+            "rejected": 0
+          },
+          {
+            "second": 40,
+            "legitimate": 18,
+            "abusive": 0,
+            "rejected": 0
+          },
+          {
+            "second": 60,
+            "legitimate": 0,
+            "abusive": 640,
+            "rejected": 496
+          },
+          {
+            "second": 90,
+            "legitimate": 0,
+            "abusive": 1,
+            "rejected": 0
+          },
+          {
+            "second": 100,
+            "legitimate": 0,
+            "abusive": 2,
+            "rejected": 0
+          },
+          {
+            "second": 110,
+            "legitimate": 0,
+            "abusive": 2,
+            "rejected": 0
+          },
+          {
+            "second": 120,
+            "legitimate": 0,
+            "abusive": 2,
+            "rejected": 0
+          },
+          {
+            "second": 130,
+            "legitimate": 0,
+            "abusive": 1,
+            "rejected": 0
+          }
+        ]
+      },
       "candidates": [
         {
           "capacity": 6,
@@ -742,6 +818,82 @@
           {
             "second": 40,
             "legitimate": 34,
+            "abusive": 0,
+            "rejected": 0
+          },
+          {
+            "second": 60,
+            "legitimate": 0,
+            "abusive": 640,
+            "rejected": 496
+          },
+          {
+            "second": 90,
+            "legitimate": 0,
+            "abusive": 1,
+            "rejected": 0
+          },
+          {
+            "second": 100,
+            "legitimate": 0,
+            "abusive": 2,
+            "rejected": 0
+          },
+          {
+            "second": 110,
+            "legitimate": 0,
+            "abusive": 2,
+            "rejected": 0
+          },
+          {
+            "second": 120,
+            "legitimate": 0,
+            "abusive": 2,
+            "rejected": 0
+          },
+          {
+            "second": 130,
+            "legitimate": 0,
+            "abusive": 1,
+            "rejected": 0
+          }
+        ]
+      },
+      "baseline_holdout_result": {
+        "legitimate_allowed": 180,
+        "legitimate_rejected": 0,
+        "abusive_allowed": 152,
+        "abusive_rejected": 496,
+        "legitimate_rejection_rate": 0.0,
+        "abuse_rejection_rate": 0.7654,
+        "timeline": [
+          {
+            "second": 0,
+            "legitimate": 31,
+            "abusive": 0,
+            "rejected": 0
+          },
+          {
+            "second": 10,
+            "legitimate": 41,
+            "abusive": 0,
+            "rejected": 0
+          },
+          {
+            "second": 20,
+            "legitimate": 48,
+            "abusive": 0,
+            "rejected": 0
+          },
+          {
+            "second": 30,
+            "legitimate": 32,
+            "abusive": 0,
+            "rejected": 0
+          },
+          {
+            "second": 40,
+            "legitimate": 28,
             "abusive": 0,
             "rejected": 0
           },
@@ -1425,6 +1577,82 @@
             "legitimate": 4,
             "abusive": 0,
             "rejected": 4
+          },
+          {
+            "second": 60,
+            "legitimate": 0,
+            "abusive": 640,
+            "rejected": 632
+          },
+          {
+            "second": 90,
+            "legitimate": 0,
+            "abusive": 1,
+            "rejected": 0
+          },
+          {
+            "second": 100,
+            "legitimate": 0,
+            "abusive": 2,
+            "rejected": 0
+          },
+          {
+            "second": 110,
+            "legitimate": 0,
+            "abusive": 2,
+            "rejected": 0
+          },
+          {
+            "second": 120,
+            "legitimate": 0,
+            "abusive": 2,
+            "rejected": 0
+          },
+          {
+            "second": 130,
+            "legitimate": 0,
+            "abusive": 1,
+            "rejected": 0
+          }
+        ]
+      },
+      "baseline_holdout_result": {
+        "legitimate_allowed": 30,
+        "legitimate_rejected": 150,
+        "abusive_allowed": 16,
+        "abusive_rejected": 632,
+        "legitimate_rejection_rate": 0.8333,
+        "abuse_rejection_rate": 0.9753,
+        "timeline": [
+          {
+            "second": 0,
+            "legitimate": 28,
+            "abusive": 0,
+            "rejected": 23
+          },
+          {
+            "second": 10,
+            "legitimate": 14,
+            "abusive": 0,
+            "rejected": 12
+          },
+          {
+            "second": 20,
+            "legitimate": 46,
+            "abusive": 0,
+            "rejected": 38
+          },
+          {
+            "second": 30,
+            "legitimate": 52,
+            "abusive": 0,
+            "rejected": 43
+          },
+          {
+            "second": 40,
+            "legitimate": 40,
+            "abusive": 0,
+            "rejected": 34
           },
           {
             "second": 60,
@@ -2175,6 +2403,82 @@
           }
         ]
       },
+      "baseline_holdout_result": {
+        "legitimate_allowed": 34,
+        "legitimate_rejected": 26,
+        "abusive_allowed": 48,
+        "abusive_rejected": 600,
+        "legitimate_rejection_rate": 0.4333,
+        "abuse_rejection_rate": 0.9259,
+        "timeline": [
+          {
+            "second": 0,
+            "legitimate": 14,
+            "abusive": 0,
+            "rejected": 2
+          },
+          {
+            "second": 10,
+            "legitimate": 14,
+            "abusive": 0,
+            "rejected": 7
+          },
+          {
+            "second": 20,
+            "legitimate": 14,
+            "abusive": 0,
+            "rejected": 8
+          },
+          {
+            "second": 30,
+            "legitimate": 14,
+            "abusive": 0,
+            "rejected": 7
+          },
+          {
+            "second": 40,
+            "legitimate": 4,
+            "abusive": 0,
+            "rejected": 2
+          },
+          {
+            "second": 60,
+            "legitimate": 0,
+            "abusive": 640,
+            "rejected": 600
+          },
+          {
+            "second": 90,
+            "legitimate": 0,
+            "abusive": 1,
+            "rejected": 0
+          },
+          {
+            "second": 100,
+            "legitimate": 0,
+            "abusive": 2,
+            "rejected": 0
+          },
+          {
+            "second": 110,
+            "legitimate": 0,
+            "abusive": 2,
+            "rejected": 0
+          },
+          {
+            "second": 120,
+            "legitimate": 0,
+            "abusive": 2,
+            "rejected": 0
+          },
+          {
+            "second": 130,
+            "legitimate": 0,
+            "abusive": 1,
+            "rejected": 0
+          }
+        ]
+      },
       "candidates": [
         {
           "capacity": 4,
@@ -2809,6 +3113,82 @@
           {
             "second": 40,
             "legitimate": 73,
+            "abusive": 0,
+            "rejected": 0
+          },
+          {
+            "second": 60,
+            "legitimate": 0,
+            "abusive": 640,
+            "rejected": 512
+          },
+          {
+            "second": 90,
+            "legitimate": 0,
+            "abusive": 1,
+            "rejected": 0
+          },
+          {
+            "second": 100,
+            "legitimate": 0,
+            "abusive": 2,
+            "rejected": 0
+          },
+          {
+            "second": 110,
+            "legitimate": 0,
+            "abusive": 2,
+            "rejected": 0
+          },
+          {
+            "second": 120,
+            "legitimate": 0,
+            "abusive": 2,
+            "rejected": 0
+          },
+          {
+            "second": 130,
+            "legitimate": 0,
+            "abusive": 1,
+            "rejected": 0
+          }
+        ]
+      },
+      "baseline_holdout_result": {
+        "legitimate_allowed": 180,
+        "legitimate_rejected": 0,
+        "abusive_allowed": 136,
+        "abusive_rejected": 512,
+        "legitimate_rejection_rate": 0.0,
+        "abuse_rejection_rate": 0.7901,
+        "timeline": [
+          {
+            "second": 0,
+            "legitimate": 48,
+            "abusive": 0,
+            "rejected": 0
+          },
+          {
+            "second": 10,
+            "legitimate": 41,
+            "abusive": 0,
+            "rejected": 0
+          },
+          {
+            "second": 20,
+            "legitimate": 44,
+            "abusive": 0,
+            "rejected": 0
+          },
+          {
+            "second": 30,
+            "legitimate": 35,
+            "abusive": 0,
+            "rejected": 0
+          },
+          {
+            "second": 40,
+            "legitimate": 12,
             "abusive": 0,
             "rejected": 0
           },
@@ -3486,6 +3866,82 @@
             "legitimate": 52,
             "abusive": 0,
             "rejected": 25
+          },
+          {
+            "second": 60,
+            "legitimate": 0,
+            "abusive": 640,
+            "rejected": 536
+          },
+          {
+            "second": 90,
+            "legitimate": 0,
+            "abusive": 1,
+            "rejected": 0
+          },
+          {
+            "second": 100,
+            "legitimate": 0,
+            "abusive": 2,
+            "rejected": 0
+          },
+          {
+            "second": 110,
+            "legitimate": 0,
+            "abusive": 2,
+            "rejected": 0
+          },
+          {
+            "second": 120,
+            "legitimate": 0,
+            "abusive": 2,
+            "rejected": 0
+          },
+          {
+            "second": 130,
+            "legitimate": 0,
+            "abusive": 1,
+            "rejected": 0
+          }
+        ]
+      },
+      "baseline_holdout_result": {
+        "legitimate_allowed": 135,
+        "legitimate_rejected": 45,
+        "abusive_allowed": 112,
+        "abusive_rejected": 536,
+        "legitimate_rejection_rate": 0.25,
+        "abuse_rejection_rate": 0.8272,
+        "timeline": [
+          {
+            "second": 0,
+            "legitimate": 52,
+            "abusive": 0,
+            "rejected": 5
+          },
+          {
+            "second": 10,
+            "legitimate": 32,
+            "abusive": 0,
+            "rejected": 12
+          },
+          {
+            "second": 20,
+            "legitimate": 17,
+            "abusive": 0,
+            "rejected": 0
+          },
+          {
+            "second": 30,
+            "legitimate": 61,
+            "abusive": 0,
+            "rejected": 24
+          },
+          {
+            "second": 40,
+            "legitimate": 18,
+            "abusive": 0,
+            "rejected": 4
           },
           {
             "second": 60,
