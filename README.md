@@ -6,7 +6,7 @@ An evidence-driven portfolio lab for marketplace bot and traffic defence. A synt
 
 This is independent portfolio work. It is not a Faire deployment, uses no Faire/customer data, and does not claim production detection accuracy or conversion impact.
 
-**Verified on 13 October 2026:** 12 local integration checks and 18 live AWS checks passed. The scoped WAF probe was restored to Count, both disposable AWS stacks were verified absent, and the public dashboard retains the sanitized evidence. The AWS lifecycle scripts were exercised locally; the manual GitHub AWS job is configured for future runs, but that complete job has not yet been executed on a GitHub runner.
+**Verified on 13 October 2026:** six recommendation tests, 12 local integration checks and 18 live AWS checks passed. The complete [manual GitHub AWS workflow](https://github.com/kenydebo/marketplace-traffic-defence-lab/actions/runs/38456472401) succeeded, including image build, deployment, live tests, sanitized evidence collection and teardown. The scoped WAF probe was restored to Count, both disposable AWS stacks were independently verified absent, and the public dashboard retains the reviewed workflow artifact.
 
 ## What the application does
 

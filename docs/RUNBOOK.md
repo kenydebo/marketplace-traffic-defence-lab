@@ -4,6 +4,8 @@
 
 Refresh the GitHub AWS secrets (including the session token when supplied by the lab), update the expected account variable if the provider issued another account, and run the manual AWS workflow. Region is us-east-1. The runner discovers its source IPv4 /32 and supported availability zones. Application credentials are generated in Secrets Manager.
 
+The verified GitHub run took about 30 minutes including creation, testing and cleanup. Allow time for CloudFront and Redis provisioning/deletion; the static dashboard can be demonstrated without keeping AWS resources running.
+
 Only synthetic traffic targets this run's endpoint: one 40-request shared-limiter experiment and at most 120 requests for a separate scoped WAF probe, plus a small number of functional checks. The environment is not opened as a public interactive API or volumetric attack service.
 
 Download `marketplace-sanitized-evidence` from the completed run. Inspect every check and cleanup status. Publishing new evidence requires reviewing the sanitized JSON and committing it under `site/data/aws.json`; no raw logs or private inventory are published.

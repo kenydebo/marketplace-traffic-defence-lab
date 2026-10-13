@@ -1,6 +1,6 @@
 {
   "evidence_type": "aws_live_verified",
-  "tested_at": "2026-10-13T19:20:00.055376+00:00",
+  "tested_at": "2026-10-13T19:56:09.852045+00:00",
   "checks": [
     {
       "check": "normal edge request",
@@ -24,7 +24,7 @@
         "requests": 40,
         "allowed": 13,
         "rate_limited": 27,
-        "elapsed_seconds": 0.728,
+        "elapsed_seconds": 0.64,
         "maximum_given_elapsed_time": 14,
         "application_instances_seen": 2
       }
@@ -63,7 +63,7 @@
       "check": "scoped WAF rate enforcement",
       "passed": true,
       "detail": {
-        "requests": 50,
+        "requests": 45,
         "waf_block_responses": 5,
         "maximum_probe_requests": 120
       }
@@ -121,7 +121,7 @@
   "architecture": "CloudFront/WAF \u2192 private ALB \u2192 two Fargate tasks \u2192 encrypted Redis",
   "live_aggregates": {
     "app": {
-      "catalog / 200 / shared_redis": 60,
+      "catalog / 200 / shared_redis": 55,
       "session / 200 / shared_redis": 3,
       "catalog / 429 / shared_redis": 27,
       "catalog / 401 / validation": 1,
@@ -135,17 +135,17 @@
       "search / 400 / validation": 1
     },
     "waf": {
-      "Default_Action / ALLOW": 116,
+      "Default_Action / ALLOW": 89,
       "SyntheticMarker / BLOCK": 1,
       "EnforcementProbe / BLOCK": 5
     },
     "fingerprints": {
-      "t12d380500_10ed599f3404_67a080e8974e": 122
+      "t13d1813h1_85036bcba153_d339722ba4af": 95
     },
     "endpoint_patterns": {
       "catalog": {
-        "requests": 88,
-        "cost_units": 87,
+        "requests": 83,
+        "cost_units": 82,
         "authentication_failures": 0,
         "distinct_actor_pseudonyms": 2,
         "distinct_resource_pseudonyms": 0
@@ -226,7 +226,8 @@
       "limit": 30
     }
   ],
+  "recommendation_dataset_sha256": "efc2208d9d5a558ac7b9fdc954de807446aedc0854a700b931a49773154f952d",
   "log_snapshot_note": "Asynchronous log delivery can make this bounded snapshot incomplete; it is not a full traffic denominator.",
-  "recommendation_dataset_sha256": "08110b190f36eda999c79510cb93cd8966575cccbedf74321cae307c04e5bc8d",
-  "cleanup_verified_at": "2026-10-13T19:34:53.073768+00:00"
+  "logs_collected_at": "2026-10-13T19:56:16.347929+00:00",
+  "cleanup_verified_at": "2026-10-13T20:09:01.538075+00:00"
 }
