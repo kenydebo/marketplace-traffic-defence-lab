@@ -1,7 +1,7 @@
 {
   "title": "Marketplace Traffic Defence Lab",
   "evidence_type": "synthetic_replay",
-  "dataset_sha256": "08110b190f36eda999c79510cb93cd8966575cccbedf74321cae307c04e5bc8d",
+  "dataset_sha256": "efc2208d9d5a558ac7b9fdc954de807446aedc0854a700b931a49773154f952d",
   "algorithm": "Trusted baseline P99 \u2192 bounded candidate grid \u2192 labelled replay \u2192 observation proposal",
   "engine": "Python standard library; no ML, CrowdSec or external recommendation service",
   "budgets": {
@@ -740,7 +740,7 @@
       "observations": {
         "maximum_requests_per_actor": 80,
         "maximum_cost_per_actor": 80,
-        "maximum_distinct_resources_per_actor": 8,
+        "maximum_distinct_resources_per_actor": 0,
         "maximum_authentication_failures_per_actor": 0,
         "maximum_sources_sharing_fingerprint": 7,
         "meaning": "Descriptive evidence only; these features do not label an actor as malicious."
@@ -2284,7 +2284,7 @@
       "observations": {
         "maximum_requests_per_actor": 80,
         "maximum_cost_per_actor": 320,
-        "maximum_distinct_resources_per_actor": 8,
+        "maximum_distinct_resources_per_actor": 0,
         "maximum_authentication_failures_per_actor": 0,
         "maximum_sources_sharing_fingerprint": 7,
         "meaning": "Descriptive evidence only; these features do not label an actor as malicious."
@@ -3035,7 +3035,7 @@
       "observations": {
         "maximum_requests_per_actor": 80,
         "maximum_cost_per_actor": 80,
-        "maximum_distinct_resources_per_actor": 8,
+        "maximum_distinct_resources_per_actor": 0,
         "maximum_authentication_failures_per_actor": 80,
         "maximum_sources_sharing_fingerprint": 7,
         "meaning": "Descriptive evidence only; these features do not label an actor as malicious."
@@ -3786,7 +3786,7 @@
       "observations": {
         "maximum_requests_per_actor": 80,
         "maximum_cost_per_actor": 80,
-        "maximum_distinct_resources_per_actor": 8,
+        "maximum_distinct_resources_per_actor": 0,
         "maximum_authentication_failures_per_actor": 0,
         "maximum_sources_sharing_fingerprint": 7,
         "meaning": "Descriptive evidence only; these features do not label an actor as malicious."
@@ -4537,7 +4537,7 @@
       "observations": {
         "maximum_requests_per_actor": 80,
         "maximum_cost_per_actor": 80,
-        "maximum_distinct_resources_per_actor": 8,
+        "maximum_distinct_resources_per_actor": 0,
         "maximum_authentication_failures_per_actor": 0,
         "maximum_sources_sharing_fingerprint": 7,
         "meaning": "Descriptive evidence only; these features do not label an actor as malicious."

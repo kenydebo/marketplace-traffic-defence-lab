@@ -8,4 +8,6 @@ Synthetic recommendation scenarios include a common fingerprint used by both leg
 
 Live WAF/app aggregates remove raw addresses, headers, account/resource identifiers and request bodies. Unlabelled live events can show controls operating, but do not establish a trusted legitimate baseline or production bot accuracy. Consequently their recommendation status is `insufficient_evidence_unlabelled_live_traffic`.
 
+Cloud snapshots preserve the recommendation dataset hash used for that deployment. The committed history provides the matching fixture version. Later descriptive fixture corrections can change the dataset hash without changing generated policy settings; compare the versioned CloudFormation template when assessing deployment evidence. Log delivery is asynchronous, so a bounded log snapshot may be incomplete.
+
 Structured app events include route, status, cost, limiter mode, pseudonymous actor/resource, instance, processing time, trace, and validated trusted edge JA4 when available. Not every edge event reaches the app; aggregate the two sources separately. Trace correlation requires trusted ingress handling and should not be assumed from a client-supplied value. App processing time excludes client/edge/network latency.

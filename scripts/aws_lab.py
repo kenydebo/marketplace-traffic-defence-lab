@@ -263,8 +263,13 @@ def collect():
     proposals = json.loads((ROOT/'site/data/recommendations.json').read_text())['proposals']
     expected = {p['route'].title()+'Observe' for p in proposals if p['decision'] == 'propose_observation'}
     actual = {r['name'] for r in observed if r['name'] not in ('JA4Observe', 'EnforcementProbe')}
-    verified = actual == expected and all(r['action'] == 'Count' for r in observed)
+    names = {r['name'] for r in observed}
+    expected_limits = {p['route'].title()+'Observe': p['edge_proposal']['limit'] for p in proposals if p['decision'] == 'propose_observation'}
+    expected_limits.update({'JA4Observe': 30, 'EnforcementProbe': 10})
+    verified = actual == expected and {'JA4Observe', 'EnforcementProbe'}.issubset(names) and all(
+        r['action'] == 'Count' and r['limit'] == expected_limits.get(r['name']) for r in observed)
     report['deployed_edge_rules'] = observed
+    report['recommendation_dataset_sha256'] = json.loads((ROOT/'site/data/recommendations.json').read_text())['dataset_sha256']
     check_name = 'eligible recommendations and JA4 remain Count; withheld login absent'
     report['checks'] = [c for c in report['checks'] if c['check'] != check_name] + [
         {'check': check_name, 'passed': verified, 'detail': {'eligible_endpoint_policies': len(expected), 'observed_count_rules': len(observed)}}]

@@ -6,6 +6,8 @@ An evidence-driven portfolio lab for marketplace bot and traffic defence. A synt
 
 This is independent portfolio work. It is not a Faire deployment, uses no Faire/customer data, and does not claim production detection accuracy or conversion impact.
 
+**Verified on 13 October 2026:** 12 local integration checks and 18 live AWS checks passed. The scoped WAF probe was restored to Count, both disposable AWS stacks were verified absent, and the public dashboard retains the sanitized evidence. The AWS lifecycle scripts were exercised locally; the manual GitHub AWS job is configured for future runs, but that complete job has not yet been executed on a GitHub runner.
+
 ## What the application does
 
 Buyers browse a sample catalog, view product IDs, search with bounded query cost, obtain signed anonymous sessions, authenticate a fixture account, and submit a simulated cart item. There is no inventory database, persistent cart or payment flow.

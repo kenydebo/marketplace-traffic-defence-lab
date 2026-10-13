@@ -117,7 +117,7 @@
       }
     }
   ],
-  "cleanup_verified": false,
+  "cleanup_verified": true,
   "architecture": "CloudFront/WAF \u2192 private ALB \u2192 two Fargate tasks \u2192 encrypted Redis",
   "live_aggregates": {
     "app": {
@@ -226,5 +226,7 @@
       "limit": 30
     }
   ],
-  "log_snapshot_note": "Asynchronous log delivery can make this bounded snapshot incomplete; it is not a full traffic denominator."
+  "log_snapshot_note": "Asynchronous log delivery can make this bounded snapshot incomplete; it is not a full traffic denominator.",
+  "recommendation_dataset_sha256": "08110b190f36eda999c79510cb93cd8966575cccbedf74321cae307c04e5bc8d",
+  "cleanup_verified_at": "2026-10-13T19:34:53.073768+00:00"
 }

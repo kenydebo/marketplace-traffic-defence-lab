@@ -35,7 +35,7 @@ def generate(seed=42):
                 # Below-threshold scraper: deliberately shows residual risk.
                 for i in range(8):
                     events.append(dict(timestamp=offset+100+i*5, actor=route+'-slow-automation',
-                        source='slow-source', route=route, cost=1, resource=f'product-{i}',
+                        source='slow-source', route=route, cost=1, resource=f'product-{i}' if route == 'products' else None,
                         ja4='shared-browser-fingerprint', status=200, label='abusive', split=split,
                         journey='slow-abuse'))
     return sorted(events, key=lambda e: (e['timestamp'], e['actor']))
