@@ -1,109 +1,32 @@
 # Marketplace Traffic Defence Lab
 
-An evidence-driven portfolio lab for marketplace bot and traffic defence. A synthetic buyer API runs behind layered controls; an explainable Python script turns trusted baseline traffic into endpoint proposals, tests buyer impact, and withholds unsafe recommendations.
+I built this lab to test traffic controls for a marketplace without losing sight of the buyer. It brings together endpoint policy review, shared application limits, AWS WAF and evidence from an actual deployment.
 
-**Dashboard:** https://kenydebo.github.io/marketplace-traffic-defence-lab/
+[Open the dashboard](https://kenydebo.github.io/marketplace-traffic-defence-lab/) · [View the successful AWS run](https://github.com/kenydebo/marketplace-traffic-defence-lab/actions/runs/38456472401)
 
-This is independent portfolio work. It is not a Faire deployment, uses no Faire/customer data, and does not claim production detection accuracy or conversion impact.
+## What it demonstrates
 
-**Verified on 13 October 2026:** six recommendation tests, 12 local integration checks and 18 live AWS checks passed. The complete [manual GitHub AWS workflow](https://github.com/kenydebo/marketplace-traffic-defence-lab/actions/runs/38456472401) succeeded, including image build, deployment, live tests, sanitized evidence collection and teardown. The scoped WAF probe was restored to Count, both disposable AWS stacks were independently verified absent, and the public dashboard retains the reviewed workflow artifact.
+- **Shared limits:** two application instances use the same Redis allowance, so adding an instance does not double a visitor's budget.
+- **Endpoint controls:** browsing, product requests, search, login and cart activity have different limits and costs.
+- **Buyer impact:** proposed application limits are tested against labelled examples and a separate dataset before an observation proposal is accepted.
+- **Controlled rollout:** eligible WAF rules stay in Count mode. A separate test exercises blocking and rollback.
 
-## What the application does
+## Results
 
-Buyers browse a sample catalog, view product IDs, search with bounded query cost, obtain signed anonymous sessions, authenticate a fixture account, and submit a simulated cart item. There is no inventory database, persistent cart or payment flow.
+On 13 October 2026, **18 AWS checks, 12 local integration checks and six recommendation tests passed**.
 
-Two application instances share Redis token buckets. Redis is temporary shared rate-limit memory: adding instances does not give one signed session a fresh allowance per instance. A short Lua script atomically refills and consumes tokens on one Redis primary. Login/session use source-address keys; browsing uses a verified session when available. All product IDs share a route allowance.
+In AWS, 40 requests across both application instances shared one allowance: 13 succeeded and 27 were rate limited. WAF logs confirmed the test blocks. Both AWS stacks were deleted and cleanup verified.
 
-The local Redis-outage experiment allows only a small **per-instance** browsing fallback and rejects login/cart/session while shared state is unavailable. The fallback is explicitly not a global quota.
+The login proposal was withheld: it rejected 3.3% of legitimate requests in the separate test dataset, above the lab's 1% budget.
 
-## Recommendation flow
+## Scope
 
-1. Generate **labelled synthetic** buyer, shared-network, burst-abuse and slow-abuse journeys.
-2. Use only the trusted calibration window to calculate P99 cost per key/second and requests per source/minute.
-3. Build a bounded candidate grid with explicit margins. The lab budgets are at most 64 burst tokens, six refill tokens/second, at most 1% legitimate request rejection, and at least 50% labelled-abuse rejection. These are declared demonstration constraints, not measured service capacity.
-4. Replay application token buckets on a separate validation window and select an eligible candidate.
-5. Evaluate the selected candidate on an additional holdout window. A failing holdout withholds the recommendation.
-6. Generate eligible **WAF Count-mode** observations from the source-minute baseline. Real Count-mode results must be reviewed before any enforcement promotion.
+Recommendations use generated, labelled traffic. The script proposes rate limits; it does not identify malicious visitors from live logs. WAF thresholds come from the normal traffic baseline and require observation before enforcement. JA4 is supporting context, never a reason to block on its own.
 
-The engine uses **Python's standard library**. No CrowdSec, ML, LLM, or opaque recommendation service is involved. The only application package is the Redis client. Descriptive enumeration, cost, failure and fingerprint-cohort measurements are supporting evidence; synthetic ground-truth labels never act as a runtime bot classifier.
-
-The login candidate is deliberately retained for inspection but withheld when the separate shared-network holdout exceeds the buyer-impact budget. Below-threshold slow abuse remains visible as residual risk. JA4 values never independently cause a blocking recommendation.
-
-Read the [five-minute demo guide](docs/DEMO.md), [engineering decisions](docs/DECISIONS.md), [operating runbook](docs/RUNBOOK.md), [security boundaries](SECURITY.md), and [evidence guide](docs/EVIDENCE.md).
-
-## AWS architecture
-
-```mermaid
-flowchart TD
-    Client[Controlled test client] --> Edge[CloudFront with AWS WAF attached]
-    Edge -->|VPC origin| ALB[Internal application load balancer]
-    ALB --> A[Fargate application task A]
-    ALB --> B[Fargate application task B]
-    A -->|TLS and authentication| Redis[Private ElastiCache Redis primary]
-    B -->|TLS and authentication| Redis
-    Edge -. WAF logs .-> Logs[CloudWatch logs]
-    A -. JSON events .-> Logs
-    B -. JSON events .-> Logs
-    Logs --> Evidence[Sanitized aggregate evidence]
-```
-
-The WAF allows only the current test runner's IPv4 /32. It blocks a synthetic marker, deploys eligible endpoint recommendations in Count, and observes JA4 aggregation on the product route. A **separate** synthetic catalog probe temporarily moves to Block during verification, then returns to Count. That probe is not represented as a production-calibrated recommendation.
-
-The internal ALB and Redis have no public ingress. Tasks have public addresses for image-pull/logging egress but accept application traffic only from the ALB security group. This avoids a persistent NAT gateway in the disposable lab. CloudFront-to-ALB and ALB-to-app use private HTTP; viewer traffic and Redis use TLS. This is not an end-to-end TLS claim. One Redis primary is a cost-bounded demonstration, not HA or a durable multi-region quota.
+The dashboard displays saved evidence. The disposable AWS environment has been removed.
 
 ## Run it
 
-Requires Docker Compose and Python 3.9+ locally. CI/application images use Python 3.12.
+[Local setup and AWS deployment](docs/IMPLEMENTATION.md#run-it) · [Five-minute walkthrough](docs/DEMO.md) · [Runbook](docs/RUNBOOK.md) · [Evidence](docs/EVIDENCE.md) · [Security](SECURITY.md)
 
-```sh
-python3 scripts/local_env.py
-docker compose up -d --build
-python3 tests/integration.py --outage
-python3 traffic/generate.py
-python3 analysis/recommend.py
-python3 tests/recommendation_test.py
-python3 infra/generate.py
-python3 -m http.server 18100 --bind 127.0.0.1 --directory site
-```
-
-Open http://127.0.0.1:18100. API instances listen only on localhost ports 18081/18082. Stop the local server with Ctrl-C and containers with `docker compose down --volumes`.
-
-## Deploy a fresh disposable AWS lab from GitHub
-
-In **Settings → Secrets and variables → Actions**, configure:
-
-| Kind | Name | Value |
-|---|---|---|
-| Secret | `AWS_ACCESS_KEY_ID` | Current disposable lab key |
-| Secret | `AWS_SECRET_ACCESS_KEY` | Current lab secret |
-| Secret | `AWS_SESSION_TOKEN` | Required for session credentials; omit for non-session credentials |
-| Variable | `AWS_REGION` | `us-east-1` |
-| Variable | `AWS_EXPECTED_ACCOUNT_ID` | The explicitly authorized lab account ID |
-
-Then **Actions → Disposable AWS lab → Run workflow** on `main`. The workflow verifies account identity, creates two isolated CloudFormation stacks, pushes a digest-pinned image, deploys, tests, collects sanitized evidence, and deletes its stacks. Application secrets are generated in AWS Secrets Manager and do not belong in GitHub variables.
-
-When a new lab supplies only a key and secret, remove any old `AWS_SESSION_TOKEN` secret. When it supplies three session credentials, refresh all three together.
-
-Updating credentials permits a new run; **CloudFormation recreates the environment**. Credentials alone do not recreate resources. Pluralsight accounts may deny required services. Permission failures are reported without claiming a successful deployment. The public dashboard survives lab expiry.
-
-AWS operations never run on push or a pull request. GitHub Actions are pinned to commit SHAs. Failed steps still attempt cleanup, but hard cancellation, expired credentials, provider failures or runner loss can interrupt it. Use the recovery instructions in the runbook. The AWS workflow uploads only sanitized evidence; it does not auto-commit artifacts to `main` or overwrite the public dashboard.
-
-For an AWS account you own, replace copied credentials with a narrowly scoped GitHub OIDC role. Temporary lab credentials can expire or prevent IAM/OIDC setup.
-
-## Evidence
-
-- [Local integration](site/data/integration.json): actual two-instance Redis checks, including outage behaviour.
-- [Recommendations](site/data/recommendations.json): labelled synthetic replay; includes dataset SHA-256, candidates, holdout and limitations.
-- [AWS evidence](site/data/aws.json): full-stack attempt/live results and cleanup status, when collected. Read its `evidence_type` and individual checks before making claims.
-- [Source dataset](traffic/scenarios.jsonl): generated synthetic events, not captured buyer data.
-
-Deployment code is not proof of deployment. Synthetic false-positive/abuse rates are not production precision, recall, or business outcomes.
-
-## References
-
-- [AWS CloudFront VPC origins](https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/private-content-vpc-origins.html)
-- [AWS WAF logging](https://docs.aws.amazon.com/waf/latest/developerguide/logging.html)
-- [AWS JA3/JA4 support](https://aws.amazon.com/about-aws/whats-new/2025/03/aws-waf-ja4-fingerprinting-aggregation-ja3-ja4-fingerprints-rate-based-rules/)
-- [Redis atomic Lua execution](https://redis.io/docs/latest/develop/programmability/eval-intro/)
-
-MIT licensed. See [LICENSE](LICENSE).
+Python · AWS CloudFront/WAF · Fargate · Redis · CloudFormation
