@@ -6,30 +6,14 @@ I built this demo to test endpoint traffic controls and review buyer impact befo
 
 ```mermaid
 flowchart TB
-    subgraph Demo[Demonstrated lab]
-        Visitor[Visitor] --> WAF[CloudFront + AWS WAF]
-        WAF --> ALB[Private load balancer]
-        ALB --> App[Two application instances]
-        App <-->|Shared allowance| Redis[Private Redis]
-        WAF --> Logs[WAF + application logs]
-        App --> Logs
-        Logs --> Dashboard[Dashboard: saved evidence]
-        Sample[Labelled sample traffic] --> Script[Python rule proposals]
-        Script --> Dashboard
-        Script -->|Eligible Count proposals| WAF
-    end
-    subgraph Extension[Possible production extension]
-        Detect[Python detections OR SIEM]
-        Review[Investigate + propose new rule]
-        SOAR[Optional SOAR: approvals, deployment, rollback]
-        Live[Live dashboard: rule matches + buyer impact]
-        Detect -.-> Review
-        Review -.-> SOAR
-        Live -.-> Review
-    end
-    Logs -.-> Detect
-    Logs -.-> Live
-    SOAR -.->|Deploy rule in Count| WAF
+    AWS["AWS WAF + application<br/>Shared Redis limits"] --> Logs[WAF + application logs]
+    Logs --> Saved["Dashboard<br/>Saved test results"]
+    Logs -.-> Detection["Python detections OR SIEM<br/>Flag suspicious patterns"]
+    Detection -.-> Review["Investigate + propose new rule"]
+    Review -.-> Response["Manual approval OR SOAR workflow<br/>Deploy WAF rule in Count"]
+    Response -.-> AWS
+    Logs -.-> Live["Live dashboard<br/>Rule matches + buyer impact"]
+    Live -.-> Review
 ```
 
 **Solid arrows:** demonstrated lab. **Dashed arrows:** possible extensions. Demo recommendations use labelled sample traffic; its dashboard displays saved results.
