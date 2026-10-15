@@ -2,7 +2,7 @@
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none'">
 <meta name="description" content="A mock marketplace deployed in AWS: controls implemented through code, WAF decisions, Count-mode policies and Python rule recommendations.">
-<title>Marketplace Traffic Defence Lab</title><link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="style.css?v=39d81eb46a45"><script defer src="app.js?v=10f6799d63cd"></script></head>
+<title>Marketplace Traffic Defence Lab</title><link rel="icon" href="favicon.svg" type="image/svg+xml"><link rel="stylesheet" href="style.css?v=39d81eb46a45"><script defer src="app.js?v=0fb4a87e8d1d"></script></head>
 <body>
 <header class="top"><a class="brand" href="#"><span class="mark">M</span> TRAFFIC DEFENCE LAB</a><nav aria-label="Main navigation"><a href="#evidence">Controls</a><a href="#waf">WAF</a><a href="#review">Recommendations</a><a href="https://github.com/kenydebo/marketplace-traffic-defence-lab">Source ↗</a></nav></header>
 <main>
@@ -35,13 +35,13 @@
     <div class="decision">
       <div class="decision-head"><div><p class="eyebrow" id="owner"></p><h3 id="route">Loading…</h3><p id="risk"></p></div><span id="decision-badge" class="pill"></span></div>
       <div class="controls"><label for="policy-view">Application limit</label><select id="policy-view"><option value="selected">Proposed limit</option><option value="baseline">Existing limit</option></select><label for="dataset">Test data</label><select id="dataset"><option value="validation">Validation sample</option><option value="holdout">Separate test sample</option></select></div>
-      <div class="metrics"><div><small>Sample abuse rejected</small><strong id="abuse-rate">—</strong><span id="abuse-count"></span></div><div><small>Sample buyer requests rejected</small><strong id="buyer-rate">—</strong><span>Lab budget ≤ 1%</span></div><div><small>Application burst allowance</small><strong id="capacity">—</strong><span id="refill"></span></div></div>
+      <div class="metrics"><div><small>Sample abuse rejected</small><strong id="abuse-rate">—</strong><span id="abuse-count"></span></div><div><small>Sample buyer requests rejected</small><strong id="buyer-rate">—</strong><span>Lab budget ≤ 1%</span></div><div><small>Starting request credits</small><strong id="capacity">—</strong><span id="refill"></span></div></div>
       <figure class="chart"><figcaption>Sample traffic replay <span>Requests per 10-second interval</span></figcaption><svg id="timeline" viewBox="0 0 700 150" role="img" aria-label="Sample traffic replay chart"></svg><div class="legend"><span class="legit">Buyer requests</span><span class="abuse">Abuse scenarios</span><span class="rejected">Requests rejected by the evaluated limit</span></div></figure>
       <div class="detail-grid">
-        <article><h4>How Python proposes the limit</h4><p id="reason"></p><dl><dt>Normal traffic P99: cost / key / second</dt><dd id="p99"></dd><dt>Largest product count per actor</dt><dd id="distinct"></dd><dt>Sources sharing a fingerprint</dt><dd id="fingerprint"></dd></dl><p class="muted">P99 is the level that 99% of measured values fall at or below. The rate-limit key identifies a session or source address.</p></article>
-        <article><h4>Proposed WAF observation</h4><p id="edge"></p><p class="callout" id="holdout-status"></p><p class="muted">Application proposals are evaluated through replay. Eligible WAF proposals use Count mode, followed by review before enforcement.</p></article>
+        <article><h4>How I chose this limit</h4><p id="reason"></p></article>
+        <article><h4>Proposed WAF rule</h4><p id="edge"></p><p class="callout" id="holdout-status"></p><p class="muted">I test application limits using saved sample requests. I use WAF Count mode to review matching traffic before turning on blocking.</p></article>
       </div>
-      <details><summary>View settings and review notes</summary><div class="table-wrap"><table><thead><tr><th>Capacity</th><th>Refill / sec</th><th>Sample abuse rejected</th><th>Buyer rejection</th></tr></thead><tbody id="candidates"></tbody></table></div><ul id="limitations"></ul><p id="rollback"></p></details>
+      <details><summary>Technical settings and test data</summary><p>Request credits set the allowance for each session or source address. Larger searches use more credits.</p><dl><dt>Normal traffic P99: cost units per rate-limit key per second</dt><dd id="p99"></dd><dt id="distinct-label">Most different products requested by one session</dt><dd id="distinct"></dd><dt>Addresses sharing a fingerprint in the sample</dt><dd id="fingerprint"></dd></dl><p>P99 is the 99th percentile: 99% of measured values fall at or below this level.</p><div class="table-wrap"><table><thead><tr><th>Capacity</th><th>Refill / sec</th><th>Sample abuse rejected</th><th>Buyer rejection</th></tr></thead><tbody id="candidates"></tbody></table></div><ul id="limitations"></ul><p id="rollback"></p></details>
     </div>
   </div>
 </section>
