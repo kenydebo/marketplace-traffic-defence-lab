@@ -25,6 +25,10 @@ Recommendations use generated, labelled traffic. The script proposes rate limits
 
 The dashboard displays saved evidence. The disposable AWS environment has been removed.
 
+## Possible production extension
+
+I would add Python detections or integrate with a SIEM to flag suspicious traffic. After investigation, I would create endpoint-specific WAF rules, deploy them in Count mode, and use a live dashboard to review rule matches and potential buyer impact before enforcement. SOAR could coordinate approvals, deployment and rollback.
+
 ## Run it
 
 [Local setup and AWS deployment](docs/IMPLEMENTATION.md#run-it) · [Five-minute walkthrough](docs/DEMO.md) · [Runbook](docs/RUNBOOK.md) · [Evidence](docs/EVIDENCE.md) · [Security](SECURITY.md)
